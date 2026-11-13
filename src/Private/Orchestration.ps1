@@ -2,7 +2,7 @@
     Run orchestration: build the context, find files, dispatch by file type.
 #>
 
-$script:SupportedExtensions = @('.xlsx', '.xlsm')
+$script:SupportedExtensions = @('.xlsx', '.xlsm', '.odc')
 
 function New-MigrationContext {
     param([Parameter(Mandatory)][hashtable]$Options)
@@ -62,6 +62,7 @@ function Invoke-FileMigration {
     try {
         switch ($File.Extension.ToLowerInvariant()) {
             { $_ -in '.xlsx', '.xlsm' } { Invoke-OpenXmlMigration -File $File -Context $Context }
+            '.odc' { Invoke-OdcMigration -File $File -Context $Context }
         }
     }
     catch {
