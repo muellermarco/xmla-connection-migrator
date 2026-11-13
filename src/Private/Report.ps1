@@ -91,3 +91,57 @@ function ConvertTo-MigrationRows {
         New-ReportRow -File $File -ConnectionName $plan.Name -Update $update -Status $status -Reason $reason
     }
 }
+
+function ConvertTo-SafeCsvValue {
+    # Prefixes values that Excel would read as a formula (CSV injection, CWE-1236).
+    param([AllowNull()][string]$Value)
+    if ($null -eq $Value) { return '' }
+    if ($Value -match '^[=+\-@\t\r]') { return "'" + $Value }
+    return $Value
+}
+
+function Export-MigrationReport {
+    <#
+    .SYNOPSIS
+        Writes the report rows to a CSV file. Returns the full path.
+    #>
+    param([Parameter(Mandatory)][AllowEmptyCollection()][psobject[]]$Rows, [Parameter(Mandatory)][string]$Path)
+
+    $folder = Split-Path -Path $Path -Parent
+    if ($folder -and -not (Test-Path -LiteralPath $folder)) { [void](New-Item -ItemType Directory -Path $folder -Force) }
+    $encoding = if ($PSVersionTable.PSVersion.Major -ge 6) { 'utf8BOM' } else { 'UTF8' }
+    $safeRows = foreach ($row in $Rows) {
+        $copy = [ordered]@{}
+        foreach ($property in $row.PSObject.Properties) { $copy[$property.Name] = ConvertTo-SafeCsvValue -Value ([string]$property.Value) }
+        [pscustomobject]$copy
+    }
+    if (@($safeRows).Count -eq 0) {
+        # Export-Csv writes nothing for zero rows. Write the header so the file is still valid.
+        $header = '"FilePath","FileType","ConnectionName","OldDataSource","NewDataSource","OldCatalog","NewCatalog","OldCube","NewCube","Status","Reason"'
+        Set-Content -LiteralPath $Path -Value $header -Encoding $encoding
+    }
+    else {
+        $safeRows | Export-Csv -LiteralPath $Path -NoTypeInformation -Encoding $encoding
+    }
+    return $Path
+}
+
+function Write-MigrationSummary {
+    # Prints a short summary of the run to the console.
+    param([Parameter(Mandatory)][psobject]$Result, [Parameter(Mandatory)][string]$ReportPath)
+
+    $rows = @($Result.Rows)
+    $mode = if ($Result.Context.Apply) { 'APPLY (files changed)' } else { 'DRY RUN (no files changed, use -Apply to write)' }
+    Write-Host ''
+    Write-Host "XMLA connection migration: $mode"
+    Write-Host ("Files scanned : {0}" -f $Result.FileCount)
+    Write-Host ("Connections   : {0}" -f @($rows | Where-Object { $_.ConnectionName }).Count)
+    foreach ($status in 'changed', 'would change', 'already migrated', 'no match', 'skipped') {
+        $count = @($rows | Where-Object { $_.Status -eq $status }).Count
+        Write-Host ("  {0,-17}: {1}" -f $status, $count)
+    }
+    if ($Result.Context.Apply -and @($rows | Where-Object { $_.Status -eq 'changed' }).Count -gt 0) {
+        Write-Host "Backups       : $($Result.Context.BackupPath)"
+    }
+    Write-Host "Report        : $ReportPath"
+}

@@ -77,6 +77,9 @@ $options = @{
 }
 
 $result = Start-XmlaMigration -Options $options
-$result.Rows | Format-Table -Property FilePath, ConnectionName, Status, Reason -AutoSize | Out-Host
+
+if (-not $ReportPath) { $ReportPath = "xmla-migration-report-$($result.Context.Timestamp).csv" }
+$reportFullPath = Export-MigrationReport -Rows $result.Rows -Path ($ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($ReportPath))
+Write-MigrationSummary -Result $result -ReportPath $reportFullPath
 
 if ($PassThru) { $result.Rows }

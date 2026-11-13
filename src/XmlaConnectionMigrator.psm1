@@ -25,4 +25,6 @@ Export-ModuleMember -Function @(
     'Read-MigrationConfig'
     'Get-ConnectionUpdate'
     'Start-XmlaMigration'
+    'Export-MigrationReport'
+    'Write-MigrationSummary'
 )
