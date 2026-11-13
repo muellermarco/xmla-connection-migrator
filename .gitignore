@@ -1,0 +1,26 @@
+# Customer workbooks and connection files never go into the repository.
+*.xlsx
+*.xlsm
+*.xlsb
+*.xls
+*.odc
+!tests/fixtures/**
+
+# Backups and reports written by Invoke-XmlaMigration.ps1
+xmla-backup-*/
+backup/
+backups/
+xmla-migration-report-*.csv
+*.csv
+
+# Customer-specific URL mapping. Copy config/mapping.example.json to start.
+config/mapping.json
+
+# Excel lock files and OS noise
+~$*
+.DS_Store
+Thumbs.db
+
+# Pester output
+testResults.xml
+coverage.xml

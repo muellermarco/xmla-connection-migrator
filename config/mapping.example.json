@@ -1,0 +1,8 @@
+{
+  "mappings": [
+    {
+      "old": "http://atscale.server.com:10502/xmla/default",
+      "new": "https://atscale.server.com/engine/xmla"
+    }
+  ]
+}
