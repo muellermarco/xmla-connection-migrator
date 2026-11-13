@@ -1,5 +1,7 @@
 # xmla-connection-migrator
 
+> This is sample code, provided as is under the MIT License. It is not an AtScale product and AtScale does not support it. Read [DISCLAIMER.md](DISCLAIMER.md) before you use it.
+
 A PowerShell tool that bulk-updates AtScale XMLA connection strings in Excel workbooks and Office Data Connection (.odc) files when AtScale moves from the installer version to the container version.
 
 After the migration, users open their existing workbooks and refresh them against the new AtScale server without editing a connection by hand. The tool changes only the `Data Source` of AtScale (MSOLAP) connections, plus catalog and cube names if you ask for a rename.
@@ -17,6 +19,7 @@ After the migration, users open their existing workbooks and refresh them agains
 - [Report columns and status values](#report-columns-and-status-values)
 - [Run the tests](#run-the-tests)
 - [Limits](#limits)
+- [License](#license)
 
 ## What the tool changes
 
@@ -194,3 +197,7 @@ The tests generate small `.xlsx` and `.odc` fixtures at run time. No customer wo
 - `xl/connections.xml` is parsed and saved again as XML. The values stay the same, but formatting details can change, for example `<a/>` becomes `<a />`, and a line break before the root element becomes LF.
 - Connection string keys that contain an escaped `=` (`==`) are not supported. AtScale connection strings do not use them.
 - Workbooks that connect through an `.odc` file keep their own copy of the connection string. Run the tool on both the workbooks and the `.odc` files.
+
+## License
+
+MIT License, see [LICENSE](LICENSE). Read [DISCLAIMER.md](DISCLAIMER.md): this is sample code without support or warranty.
