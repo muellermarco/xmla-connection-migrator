@@ -47,6 +47,14 @@ function ConvertTo-XmlBytes {
     # Serialises the document as UTF-8, with a byte order mark only if the source had one.
     param([Parameter(Mandatory)][System.Xml.XmlDocument]$Document, [bool]$WithBom)
 
+    # Entitize would write a CR outside the root element as &#xD;, which is not valid there.
+    # Line breaks between the declaration and the root element therefore become LF only.
+    foreach ($node in @($Document.ChildNodes)) {
+        if ($node.NodeType -eq [System.Xml.XmlNodeType]::Whitespace -or $node.NodeType -eq [System.Xml.XmlNodeType]::SignificantWhitespace) {
+            $node.Value = $node.Value.Replace("`r", '')
+        }
+    }
+
     $settings = New-Object System.Xml.XmlWriterSettings
     $settings.Encoding = New-Object System.Text.UTF8Encoding $WithBom
     $settings.Indent = $false
